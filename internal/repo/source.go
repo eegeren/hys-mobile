@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hys/backend/internal/model"
+	"hys-backend-go/internal/model"
 )
 
 // Source knows how to retrieve personnel data from either a fixture file or the upstream endpoint.

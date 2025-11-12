@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/hys/backend/internal/handlers"
+	"hys-backend-go/internal/handlers"
 )
 
 // NewRouter wires routes and middlewares.
@@ -18,14 +18,26 @@ func NewRouter(h *handlers.Handler) *mux.Router {
 	r.Use(corsMiddleware)
 
 	api := r.PathPrefix("/api").Subrouter()
+
+	// Public / core endpoints
 	api.HandleFunc("/healthz", h.Healthz).Methods(gohttp.MethodGet)
 	api.HandleFunc("/personel_detay", h.PersonelList).Methods(gohttp.MethodGet)
 	api.HandleFunc("/giris", h.Login).Methods(gohttp.MethodPost)
 
+	// Check-in & schedule
+	api.HandleFunc("/checkin", h.Checkin).Methods(gohttp.MethodPost)
+	api.HandleFunc("/shift-today", h.ShiftToday).Methods(gohttp.MethodGet)
+
+	// Device registration
+	api.HandleFunc("/devices/register", h.RegisterDevice).Methods(gohttp.MethodPost)
+
+	// Admin endpoints
 	admin := api.PathPrefix("/admin").Subrouter()
 	admin.HandleFunc("/allowlist", h.AllowlistList).Methods(gohttp.MethodGet)
 	admin.HandleFunc("/allowlist", h.AllowlistAdd).Methods(gohttp.MethodPost)
 	admin.HandleFunc("/allowlist/{tc}", h.AllowlistDelete).Methods(gohttp.MethodDelete)
+	admin.HandleFunc("/force-notify", h.ForceNotify).Methods(gohttp.MethodPost)
+	admin.HandleFunc("/push-test", h.AdminPushTest).Methods(gohttp.MethodPost)
 
 	return r
 }
@@ -67,7 +79,7 @@ func corsMiddleware(next gohttp.Handler) gohttp.Handler {
 	return gohttp.HandlerFunc(func(w gohttp.ResponseWriter, r *gohttp.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Role")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
 		if r.Method == gohttp.MethodOptions {
 			w.WriteHeader(gohttp.StatusNoContent)
 			return
